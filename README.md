@@ -1,9 +1,10 @@
 # Activity 9: Mini E-Commerce API + UI
 
 ## Description
-A complete e-commerce platform with product catalog, shopping cart, order management, and stock validation. Features product browsing by category, cart management, and checkout functionality.
+A complete e-commerce platform with product catalog, shopping cart, order management, and stock validation. Features a professional landing page, product browsing by category, cart management, and checkout functionality.
 
 ## Features
+- ✅ **Professional Landing Page** with hero section and features showcase
 - ✅ Product catalog with categories
 - ✅ Shopping cart functionality
 - ✅ Stock validation
@@ -11,6 +12,8 @@ A complete e-commerce platform with product catalog, shopping cart, order manage
 - ✅ Price calculations
 - ✅ Session-based cart management
 - ✅ Product filtering by category
+- ✅ Modern, responsive UI with smooth animations
+- ✅ Professional footer with contact information
 
 ## Tech Stack
 - **Backend**: NestJS + TypeScript
@@ -62,10 +65,31 @@ npm start
 App: `http://localhost:3000`
 
 ## Usage
-1. Browse products by category
-2. Add products to cart
-3. Adjust quantities
-4. Proceed to checkout
-5. Enter customer information
-6. Place order
-7. View order history
+1. **Landing Page**: Start at the professional landing page with hero section
+2. **Browse Products**: Click "Start Shopping" or navigate to Shop
+3. **Filter by Category**: Use category filters to find specific products
+4. **Add to Cart**: Click "Add to Cart" on any product
+5. **Manage Cart**: Adjust quantities or remove items
+6. **Checkout**: Enter customer information and place order
+7. **Order History**: View your past orders in the Orders section
+
+## Screenshots
+
+### Landing Page
+- Hero section with call-to-action buttons
+- Features showcase highlighting platform benefits
+- Category preview cards
+- Statistics section
+- Professional footer
+
+### Shop Page
+- Product grid with category filters
+- Product cards with images, descriptions, and pricing
+- Stock availability indicators
+- Smooth hover animations
+
+### Cart & Checkout
+- Interactive cart management
+- Real-time price calculations
+- Simple checkout process
+- Order confirmation

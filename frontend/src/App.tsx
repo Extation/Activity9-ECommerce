@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { productAPI, cartAPI, orderAPI } from './api';
 import './App.css';
-import { FaShoppingCart, FaTrash, FaCheckCircle, FaBox } from 'react-icons/fa';
+import { FaShoppingCart, FaTrash, FaCheckCircle, FaBox, FaHome, FaUser, FaSignOutAlt, FaUserShield } from 'react-icons/fa';
+import LandingPage from './components/LandingPage';
+import Footer from './components/Footer';
+import Login from './components/Login';
+import Signup from './components/Signup';
+import AdminDashboard from './components/AdminDashboard';
 
 interface Product {
   id: string;
@@ -29,22 +35,33 @@ interface Order {
   createdAt: string;
 }
 
-function App() {
+function AppContent() {
+  const { user, logout, isAuthenticated, isAdmin } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [view, setView] = useState<'shop' | 'cart' | 'orders'>('shop');
+  const [view, setView] = useState<'home' | 'shop' | 'cart' | 'orders' | 'admin'>('home');
   const [checkoutData, setCheckoutData] = useState({ name: '', email: '' });
   const [categories, setCategories] = useState<string[]>([]);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
   useEffect(() => {
     loadProducts();
   }, []);
 
   useEffect(() => {
-    loadCart();
-  }, []);
+    if (isAuthenticated) {
+      loadCart();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (user) {
+      setCheckoutData({ name: user.name, email: user.email });
+    }
+  }, [user]);
 
   const loadProducts = async () => {
     try {
@@ -68,7 +85,7 @@ function App() {
 
   const loadOrders = async () => {
     try {
-      const res = await orderAPI.getOrders(checkoutData.email || undefined);
+      const res = await orderAPI.getOrders(user?.email || checkoutData.email || undefined);
       setOrders(res.data);
     } catch (error) {
       console.error('Error loading orders:', error);
@@ -90,6 +107,11 @@ function App() {
   };
 
   const handleAddToCart = async (productId: string) => {
+    if (!isAuthenticated) {
+      alert('Please login to add items to cart');
+      setShowLogin(true);
+      return;
+    }
     try {
       await cartAPI.addToCart(productId, 1);
       loadCart();
@@ -127,7 +149,7 @@ function App() {
       await orderAPI.checkout(checkoutData.name, checkoutData.email);
       await cartAPI.clearCart();
       setCart([]);
-      setCheckoutData({ name: '', email: '' });
+      loadProducts(); // Reload products to reflect updated stock
       setView('orders');
       loadOrders();
       alert('Order placed successfully!');
@@ -135,6 +157,13 @@ function App() {
       console.error('Error checking out:', error);
       alert('Checkout failed');
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setView('home');
+    setCart([]);
+    setOrders([]);
   };
 
   const cartTotal = cart.reduce(
@@ -145,25 +174,85 @@ function App() {
   return (
     <div className="ecommerce-app">
       <header className="header">
-        <h1>🛒 E-Commerce Store</h1>
+        <h1 className="header-logo" onClick={() => setView('home')}>
+          🛒 <span className="brand-text">ShopHub</span>
+        </h1>
         <nav className="nav">
+          <button className={`nav-btn ${view === 'home' ? 'active' : ''}`} onClick={() => setView('home')}>
+            <FaHome /> Home
+          </button>
           <button className={`nav-btn ${view === 'shop' ? 'active' : ''}`} onClick={() => setView('shop')}>
             <FaBox /> Shop
           </button>
-          <button className={`nav-btn ${view === 'cart' ? 'active' : ''}`} onClick={() => setView('cart')}>
-            <FaShoppingCart /> Cart ({cart.length})
-          </button>
-          <button
-            className={`nav-btn ${view === 'orders' ? 'active' : ''}`}
-            onClick={() => {
-              setView('orders');
-              loadOrders();
-            }}
-          >
-            <FaCheckCircle /> Orders
-          </button>
+          {isAuthenticated && (
+            <>
+              <button className={`nav-btn ${view === 'cart' ? 'active' : ''}`} onClick={() => setView('cart')}>
+                <FaShoppingCart /> Cart ({cart.length})
+              </button>
+              <button
+                className={`nav-btn ${view === 'orders' ? 'active' : ''}`}
+                onClick={() => {
+                  setView('orders');
+                  loadOrders();
+                }}
+              >
+                <FaCheckCircle /> Orders
+              </button>
+              {isAdmin && (
+                <button
+                  className={`nav-btn ${view === 'admin' ? 'active' : ''}`}
+                  onClick={() => setView('admin')}
+                >
+                  <FaUserShield /> Admin
+                </button>
+              )}
+            </>
+          )}
+          {isAuthenticated ? (
+            <div className="user-menu">
+              <span className="user-name">
+                <FaUser /> {user?.name}
+              </span>
+              <button className="nav-btn btn-logout" onClick={handleLogout}>
+                <FaSignOutAlt /> Logout
+              </button>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <button className="nav-btn" onClick={() => setShowLogin(true)}>
+                Login
+              </button>
+              <button className="nav-btn btn-signup" onClick={() => setShowSignup(true)}>
+                Sign Up
+              </button>
+            </div>
+          )}
         </nav>
       </header>
+
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          onSwitchToSignup={() => {
+            setShowLogin(false);
+            setShowSignup(true);
+          }}
+        />
+      )}
+
+      {showSignup && (
+        <Signup
+          onClose={() => setShowSignup(false)}
+          onSwitchToLogin={() => {
+            setShowSignup(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+
+      {view === 'home' && (
+        <LandingPage onGetStarted={() => setView('shop')} />
+      )}
 
       {view === 'shop' && (
         <main className="shop-section">
@@ -336,7 +425,21 @@ function App() {
           )}
         </main>
       )}
+
+      {view === 'admin' && isAdmin && (
+        <AdminDashboard onProductChange={loadProducts} />
+      )}
+
+      <Footer />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

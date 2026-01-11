@@ -12,11 +12,13 @@ async function bootstrap() {
   // Setup Swagger
   const config = new DocumentBuilder()
     .setTitle('E-Commerce API')
-    .setDescription('Simple e-commerce system with products, cart, and orders')
+    .setDescription('Simple e-commerce system with products, cart, orders, and authentication')
     .setVersion('1.0')
+    .addTag('auth', 'Authentication')
     .addTag('products', 'Product management')
     .addTag('cart', 'Shopping cart operations')
     .addTag('orders', 'Order management')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
